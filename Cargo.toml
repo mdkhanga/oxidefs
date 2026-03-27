@@ -2,5 +2,41 @@
 name = "oxidefs"
 version = "0.1.0"
 edition = "2021"
+description = "A Linux-style filesystem implemented in Rust"
+license = "MIT"
+
+[features]
+default = []
+fuse = ["dep:fuser"]  # Enable FUSE support (requires macFUSE on macOS)
 
 [dependencies]
+# FUSE bindings - optional, requires system FUSE library
+fuser = { version = "0.15", optional = true }
+
+# Error handling - derive macro for creating custom error types
+thiserror = "2.0"
+
+# Bit manipulation for permission flags (rwxrwxrwx)
+bitflags = "2.9"
+
+# Logging facade - we call log::info!(), log::debug!(), etc.
+log = "0.4"
+
+# Concrete logger implementation - prints logs to stderr
+env_logger = "0.11"
+
+# POSIX types (uid_t, gid_t, etc.) for compatibility
+libc = "0.2"
+
+[dev-dependencies]
+# Creates temporary files/directories for testing
+tempfile = "3.19"
+
+[[bin]]
+name = "mkfs-oxidefs"
+path = "src/bin/mkfs.rs"
+
+[[bin]]
+name = "mount-oxidefs"
+path = "src/bin/mount.rs"
+required-features = ["fuse"]  # Only build when FUSE is available
