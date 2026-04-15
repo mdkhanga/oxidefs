@@ -31,7 +31,7 @@ pub struct Superblock {
     /// Total number of blocks in the filesystem
     pub total_blocks: u64,
 
-    /// Number of currently free blocks
+    /// Num of currently free blocks
     pub free_blocks: u64,
 
     /// Total number of inodes
