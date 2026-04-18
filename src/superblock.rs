@@ -126,4 +126,141 @@ impl Superblock {
     pub fn is_valid(&self) -> bool {
         self.magic == OXIDEFS_MAGIC
     }
+
+    /// Size of the superblock when serialized to bytes
+    pub const SERIALIZED_SIZE: usize = 112;
+
+    /// Serialize the superblock to a byte buffer
+    ///
+    /// Returns a fixed-size array that can be written to block 0.
+    /// Uses little-endian byte order for all multi-byte values.
+    pub fn to_bytes(&self) -> [u8; Self::SERIALIZED_SIZE] {
+        let mut buf = [0u8; Self::SERIALIZED_SIZE];
+        let mut offset = 0;
+
+        // Write u32 values
+        buf[offset..offset + 4].copy_from_slice(&self.magic.to_le_bytes());
+        offset += 4;
+        buf[offset..offset + 4].copy_from_slice(&self.version.to_le_bytes());
+        offset += 4;
+        buf[offset..offset + 4].copy_from_slice(&self.block_size.to_le_bytes());
+        offset += 4;
+        buf[offset..offset + 4].copy_from_slice(&self._padding.to_le_bytes());
+        offset += 4;
+
+        // Write u64 values
+        buf[offset..offset + 8].copy_from_slice(&self.total_blocks.to_le_bytes());
+        offset += 8;
+        buf[offset..offset + 8].copy_from_slice(&self.free_blocks.to_le_bytes());
+        offset += 8;
+        buf[offset..offset + 8].copy_from_slice(&self.total_inodes.to_le_bytes());
+        offset += 8;
+        buf[offset..offset + 8].copy_from_slice(&self.free_inodes.to_le_bytes());
+        offset += 8;
+        buf[offset..offset + 8].copy_from_slice(&self.block_bitmap_start.to_le_bytes());
+        offset += 8;
+        buf[offset..offset + 8].copy_from_slice(&self.inode_bitmap_start.to_le_bytes());
+        offset += 8;
+        buf[offset..offset + 8].copy_from_slice(&self.inode_table_start.to_le_bytes());
+        offset += 8;
+        buf[offset..offset + 8].copy_from_slice(&self.data_blocks_start.to_le_bytes());
+        offset += 8;
+        buf[offset..offset + 8].copy_from_slice(&self.mount_time.to_le_bytes());
+        offset += 8;
+        buf[offset..offset + 8].copy_from_slice(&self.write_time.to_le_bytes());
+        offset += 8;
+
+        // Final u32 values
+        buf[offset..offset + 4].copy_from_slice(&self.mount_count.to_le_bytes());
+        offset += 4;
+        buf[offset..offset + 4].copy_from_slice(&self.max_mount_count.to_le_bytes());
+        // offset += 4; // Not needed, we're done
+
+        buf
+    }
+
+    /// Deserialize a superblock from a byte buffer
+    ///
+    /// Returns None if the buffer is too small or the magic number is invalid.
+    pub fn from_bytes(buf: &[u8]) -> Option<Self> {
+        if buf.len() < Self::SERIALIZED_SIZE {
+            return None;
+        }
+
+        let mut offset = 0;
+
+        // Helper to read u32
+        let read_u32 = |o: usize| -> u32 {
+            u32::from_le_bytes(buf[o..o + 4].try_into().unwrap())
+        };
+
+        // Helper to read u64
+        let read_u64 = |o: usize| -> u64 {
+            u64::from_le_bytes(buf[o..o + 8].try_into().unwrap())
+        };
+
+        // Read u32 fields
+        let magic = read_u32(offset);
+        offset += 4;
+        let version = read_u32(offset);
+        offset += 4;
+        let block_size = read_u32(offset);
+        offset += 4;
+        let _padding = read_u32(offset);
+        offset += 4;
+
+        // Read u64 fields
+        let total_blocks = read_u64(offset);
+        offset += 8;
+        let free_blocks = read_u64(offset);
+        offset += 8;
+        let total_inodes = read_u64(offset);
+        offset += 8;
+        let free_inodes = read_u64(offset);
+        offset += 8;
+        let block_bitmap_start = read_u64(offset);
+        offset += 8;
+        let inode_bitmap_start = read_u64(offset);
+        offset += 8;
+        let inode_table_start = read_u64(offset);
+        offset += 8;
+        let data_blocks_start = read_u64(offset);
+        offset += 8;
+        let mount_time = read_u64(offset);
+        offset += 8;
+        let write_time = read_u64(offset);
+        offset += 8;
+
+        // Final u32 fields
+        let mount_count = read_u32(offset);
+        offset += 4;
+        let max_mount_count = read_u32(offset);
+        // offset += 4; // Not needed
+
+        let sb = Self {
+            magic,
+            version,
+            block_size,
+            _padding,
+            total_blocks,
+            free_blocks,
+            total_inodes,
+            free_inodes,
+            block_bitmap_start,
+            inode_bitmap_start,
+            inode_table_start,
+            data_blocks_start,
+            mount_time,
+            write_time,
+            mount_count,
+            max_mount_count,
+        };
+
+        // Validate magic number
+        if sb.is_valid() {
+            Some(sb)
+        } else {
+            None
+        }
+    }
 }
