@@ -100,3 +100,61 @@ impl std::fmt::Display for InodeNum {
         write!(f, "inode#{}", self.0)
     }
 }
+
+// =============================================================================
+// Tests
+// =============================================================================
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_block_num_new() {
+        let block = BlockNum::new(42);
+        assert_eq!(block.as_u64(), 42);
+    }
+
+    #[test]
+    fn test_block_num_byte_offset() {
+        let block = BlockNum::new(0);
+        assert_eq!(block.byte_offset(), 0);
+
+        let block = BlockNum::new(1);
+        assert_eq!(block.byte_offset(), BLOCK_SIZE);
+
+        let block = BlockNum::new(10);
+        assert_eq!(block.byte_offset(), 10 * BLOCK_SIZE);
+    }
+
+    #[test]
+    fn test_block_num_display() {
+        let block = BlockNum::new(5);
+        assert_eq!(format!("{}", block), "block#5");
+    }
+
+    #[test]
+    fn test_inode_num_validity() {
+        let invalid = InodeNum::new(0);
+        assert!(!invalid.is_valid());
+
+        let valid = InodeNum::new(1);
+        assert!(valid.is_valid());
+    }
+
+    #[test]
+    fn test_inode_num_root() {
+        let root = InodeNum::root();
+        assert_eq!(root.as_u64(), ROOT_INODE);
+        assert!(root.is_valid());
+    }
+
+    #[test]
+    fn test_constants() {
+        assert_eq!(BLOCK_SIZE, 4096);
+        assert_eq!(INODE_SIZE, 128);
+        assert_eq!(DIRECT_BLOCKS, 12);
+        assert_eq!(ROOT_INODE, 1);
+        assert_eq!(OXIDEFS_MAGIC, 0x4F784653);
+    }
+}
