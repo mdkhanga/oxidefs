@@ -10,28 +10,6 @@ This project is an experiment in **vibe coding something non-trivial** while lea
 - **Rust** - systems programming, ownership, traits
 - **Filesystem internals** - how files actually work at the block level
 
-## Current Status
-
-**Phase 0 complete** - Foundation laid, not yet functional.
-
-### What's Built
-- Superblock structure with binary serialization (112 bytes)
-- Type-safe `BlockNum` and `InodeNum` newtypes
-- Error handling with custom `FsError` enum
-- 13 unit tests passing (including serialization round-trip)
-- Project scaffolding for `mkfs-oxidefs` and `mount-oxidefs` binaries
-
-### What's Next
-- **Phase 1: Block Layer** - Read/write 4KB blocks to a file image
-- Implement `BlockDevice` trait for storage abstraction
-- Block bitmap for tracking free/used blocks
-- First hexdump of an actual filesystem image
-
-### What's Not Working Yet
-- Cannot create filesystem images (mkfs)
-- Cannot mount (needs FUSE integration in Phase 4)
-- No file or directory operations
-
 ## Architecture
 
 ```
@@ -124,6 +102,28 @@ This project was inspired by:
 - "The Design of the UNIX Operating System" by Maurice Bach
 - ext2 filesystem documentation
 - The Rust Programming Language book
+
+## Current Status
+
+**Phase 0 complete** - Foundation laid, not yet functional.
+
+### What's Built
+- Superblock structure with binary serialization (112 bytes)
+- Type-safe `BlockNum` and `InodeNum` newtypes
+- Error handling with custom `FsError` enum
+- 13 unit tests passing (including serialization round-trip)
+- Project scaffolding for `mkfs-oxidefs` and `mount-oxidefs` binaries
+
+### What's Next
+- **Phase 1: Block Layer** - Read/write 4KB blocks to a file image
+- Implement `BlockDevice` trait for storage abstraction
+- Block bitmap for tracking free/used blocks
+- First hexdump of an actual filesystem image
+
+### What's Not Working Yet
+- Cannot create filesystem images (mkfs)
+- Cannot mount (needs FUSE integration in Phase 4)
+- No file or directory operations
 
 ## License
 
