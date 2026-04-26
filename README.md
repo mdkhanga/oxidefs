@@ -128,3 +128,35 @@ This project was inspired by:
 ## License
 
 MIT
+
+## Future Explorations
+
+After completing the core filesystem, potential deep-dive projects:
+
+### Build the Tools (Userspace)
+Write our own `ls`, `cat`, `cp`, `mkdir` in Rust - understand how tools interact with filesystems via syscalls.
+
+### Raw Syscalls (Skip libc)
+Bypass the standard library and call the kernel directly using `syscall!` - learn what libc actually does.
+
+### Kernel Filesystem Module
+The real deal - write a Linux kernel module (in C or Rust) that registers with VFS directly. This is how ext4, xfs, and btrfs work. No FUSE, no userspace - pure kernel code.
+
+```
+┌─────────────────────────────────────────────┐
+│ What we're building (FUSE)                  │
+│ User tools → libc → VFS → FUSE → OxideFS   │
+│                              (userspace)    │
+├─────────────────────────────────────────────┤
+│ The "full stack" (future)                   │
+│ Our tools → raw syscalls → Our VFS module   │
+│                              (kernel)       │
+└─────────────────────────────────────────────┘
+```
+
+### Block Device Driver
+Talk directly to disk hardware - requires understanding of device drivers, DMA, and hardware protocols.
+
+---
+
+*The FUSE approach gives 90% of the learning with 10% of the complexity. These explorations are for going deeper.*
