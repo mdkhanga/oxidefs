@@ -127,7 +127,7 @@ This project was inspired by:
 
 ## License
 
-MIT
+Apache 2.0
 
 ## Future Explorations
 
