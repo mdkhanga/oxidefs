@@ -14,11 +14,16 @@
 // Module declarations - Rust requires explicit declaration of all modules
 // We'll create these files as we implement each component
 
-pub mod types;      // Basic type definitions (BlockNum, InodeNum, etc.)
-pub mod error;      // Custom error types
-pub mod superblock; // Filesystem superblock
+pub mod types;        // Basic type definitions (BlockNum, InodeNum, etc.)
+pub mod error;        // Custom error types
+pub mod superblock;   // Filesystem superblock
+pub mod block_device; // Block-level read/write abstraction
+pub mod bitmap;       // Free/used bitmap for blocks and inodes
 
 // Re-export commonly used types at crate root for convenience
 // This lets users write `oxidefs::BlockNum` instead of `oxidefs::types::BlockNum`
 pub use types::*;
 pub use error::{FsError, FsResult};
+pub use block_device::{Block, BlockDevice, FileBlockDevice};
+pub use bitmap::Bitmap;
+pub use superblock::Superblock;
