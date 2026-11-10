@@ -56,8 +56,8 @@ This project is an experiment in **vibe coding something non-trivial** while lea
 | Phase | Description | Status |
 |-------|-------------|--------|
 | 0 | Rust foundations - types, superblock, serialization | ✅ Done |
-| 1 | Block layer - read/write blocks to image file | 🔄 Next |
-| 2 | Inode layer - file metadata and allocation | ⬜ |
+| 1 | Block layer - read/write blocks to image file | ✅ Done |
+| 2 | Inode layer - file metadata and allocation | 🔄 Next |
 | 3 | Directory layer - name lookups, path resolution | ⬜ |
 | 4 | FUSE integration - mount and use with real tools | ⬜ |
 | 5 | Write path - create, write, delete files | ⬜ |
@@ -72,8 +72,10 @@ cargo build
 # Run tests
 cargo test
 
-# (After Phase 4) Create and mount a filesystem
+# Create a filesystem image
 ./target/debug/mkfs-oxidefs test.img 100M
+
+# (After Phase 4) Mount it
 mkdir -p /tmp/oxidefs
 ./target/debug/mount-oxidefs test.img /tmp/oxidefs
 ```
@@ -91,6 +93,8 @@ src/
 ├── types.rs         # BlockNum, InodeNum, constants
 ├── error.rs         # FsError enum
 ├── superblock.rs    # Superblock structure + serialization
+├── block_device.rs  # BlockDevice trait + file-backed implementation
+├── bitmap.rs        # Free/used bitmap for blocks and inodes
 └── bin/
     ├── mkfs.rs      # Creates filesystem images
     └── mount.rs     # Mounts filesystem via FUSE
@@ -105,23 +109,25 @@ This project was inspired by:
 
 ## Current Status
 
-**Phase 0 complete** - Foundation laid, not yet functional.
+**Phase 1 complete** - `mkfs-oxidefs` creates real filesystem images.
 
 ### What's Built
 - Superblock structure with binary serialization (112 bytes)
 - Type-safe `BlockNum` and `InodeNum` newtypes
 - Error handling with custom `FsError` enum
-- 13 unit tests passing (including serialization round-trip)
-- Project scaffolding for `mkfs-oxidefs` and `mount-oxidefs` binaries
+- `BlockDevice` trait for reading/writing 4KB blocks, with a `FileBlockDevice` backed by an image file
+- `Bitmap` for tracking free/used blocks and inodes, with allocation
+- Working `mkfs-oxidefs`: writes the superblock and both bitmaps, reserves the root inode and its data block
+- 30 tests passing (including a check that superblock free counts match the on-disk bitmaps)
 
 ### What's Next
-- **Phase 1: Block Layer** - Read/write 4KB blocks to a file image
-- Implement `BlockDevice` trait for storage abstraction
-- Block bitmap for tracking free/used blocks
-- First hexdump of an actual filesystem image
+- **Phase 2: Inode Layer** - File metadata and allocation
+- On-disk `Inode` struct with binary serialization
+- Read/write inodes in the inode table
+- Allocate/free inodes via the inode bitmap
 
 ### What's Not Working Yet
-- Cannot create filesystem images (mkfs)
+- Root inode is reserved but not yet written to the inode table
 - Cannot mount (needs FUSE integration in Phase 4)
 - No file or directory operations
 
