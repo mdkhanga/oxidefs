@@ -98,9 +98,10 @@ impl Superblock {
         let inode_table_start = inode_bitmap_start + inode_bitmap_blocks;
         let data_blocks_start = inode_table_start + inode_table_blocks;
 
-        // Metadata blocks = everything before data
+        // Metadata blocks = everything before data, plus one data block
+        // pre-allocated for the root directory (mirrors the root inode below)
         let metadata_blocks = data_blocks_start;
-        let free_blocks = total_blocks.saturating_sub(metadata_blocks);
+        let free_blocks = total_blocks.saturating_sub(metadata_blocks + 1);
 
         Self {
             magic: OXIDEFS_MAGIC,
@@ -309,8 +310,8 @@ mod tests {
     fn test_superblock_free_counts() {
         let sb = Superblock::new(1000, 100);
 
-        // Free blocks should be less than total (metadata uses some)
-        assert!(sb.free_blocks < sb.total_blocks);
+        // Free blocks = total - metadata - 1 (root directory's data block)
+        assert_eq!(sb.free_blocks, sb.total_blocks - sb.data_blocks_start - 1);
 
         // Free inodes should be total - 1 (root inode pre-allocated)
         assert_eq!(sb.free_inodes, sb.total_inodes - 1);

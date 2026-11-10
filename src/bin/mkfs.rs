@@ -123,6 +123,30 @@ mod tests {
         assert_eq!(parse_size("1k").unwrap(), 1024);
     }
 
+    /// Count the clear (free) bits in the first `len` bits of a bitmap
+    /// stored on disk starting at `start_block`.
+    fn count_free(dev: &mut FileBlockDevice, start_block: u64, len: u64) -> u64 {
+        let block = dev.read_block(BlockNum::new(start_block)).unwrap();
+        let bitmap = Bitmap::from_bytes(&block, len);
+        (0..len).filter(|&i| !bitmap.is_set(i)).count() as u64
+    }
+
+    #[test]
+    fn test_superblock_free_counts_match_bitmaps() {
+        let tmp = tempfile::NamedTempFile::new().unwrap();
+        let path = tmp.path().to_str().unwrap();
+        make_filesystem(path, 1024 * 1024).unwrap();
+
+        let mut dev = FileBlockDevice::open(path).unwrap();
+        let sb = Superblock::from_bytes(&dev.read_block(BlockNum::new(0)).unwrap()).unwrap();
+        assert!(sb.is_valid());
+
+        let free_blocks = count_free(&mut dev, sb.block_bitmap_start, sb.total_blocks);
+        let free_inodes = count_free(&mut dev, sb.inode_bitmap_start, sb.total_inodes);
+        assert_eq!(sb.free_blocks, free_blocks);
+        assert_eq!(sb.free_inodes, free_inodes);
+    }
+
     #[test]
     fn test_parse_size_invalid() {
         assert!(parse_size("abc").is_err());
